@@ -1,0 +1,1 @@
+# regis-msse692-sensor-things
