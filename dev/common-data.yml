@@ -1,0 +1,7 @@
+observedProperties:
+  - name: MotionDetection
+    description: Detection of a change in the vicinity of a sensor
+    definition: https://en.wikipedia.org/wiki/Motion_detection
+  - name: FMV
+    description: Full Motion Video
+    definition: https://en.wikipedia.org/wiki/Full_motion_video

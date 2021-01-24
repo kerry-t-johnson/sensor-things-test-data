@@ -1,0 +1,50 @@
+version: "3.2"
+services:
+    node-red:
+        image: nodered/node-red-docker:slim-v8
+        volumes:
+            - nodered:/data
+        networks:
+            - backend
+    mosquitto:
+        image: agmangas/mosquitto-websockets
+        volumes:
+            - mosquitto_data:/mosquitto/data
+        networks:
+            - backend
+    gost-db:
+        image: geodan/gost-db
+        volumes:
+            - postgis:/var/lib/postgresql/data
+        environment:
+            POSTGRES_DB: gost
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        networks:
+            - backend
+    gost:
+        image: geodan/gost
+        volumes:
+            - gost_conf:/gostserver/config
+        depends_on:
+            - mosquitto
+            - gost-db
+        environment:
+            GOST_LOG_VERBOSE_FLAG: 1
+            GOST_DB_HOST: gost-db
+            GOST_MQTT_HOST: mosquitto
+        networks:
+            - backend
+    dashboard:
+        image: geodan/gost-dashboard
+        networks:
+            - backend
+        depends_on:
+            - gost
+volumes:
+    postgis:
+    nodered:
+    gost_conf:
+    mosquitto_data:
+networks:
+    backend:

@@ -1,0 +1,12 @@
+version: "3.2"
+services:
+    gost:
+        environment:
+            GOST_SERVER_NAME: Shenandoah
+            GOST_SERVER_EXTERNAL_URI: http://localhost:28080
+    dashboard:
+        ports:
+            - target: 8080
+              published: 28080
+              protocol: tcp
+              mode: host

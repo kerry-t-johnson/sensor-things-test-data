@@ -1,0 +1,13 @@
+version: "3.2"
+services:
+    gost:
+        environment:
+            GOST_SERVER_NAME: Mesa Verde International
+            GOST_SERVER_EXTERNAL_URI: http://localhost:18080
+            GOST_LOG_VERBOSE_FLAG: "TRUE"
+    dashboard:
+        ports:
+            - target: 8080
+              published: 18080
+              protocol: tcp
+              mode: host
