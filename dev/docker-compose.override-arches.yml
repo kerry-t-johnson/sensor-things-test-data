@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: arches-gost
+        environment:
+            GOST_SERVER_NAME: Arches
+            GOST_SERVER_EXTERNAL_URI: http://arches:18100
+        networks:
+            frontend:
+                ipv4_address: 172.100.0.5
+    dashboard:
+        container_name: arches
+        ports:
+            - target: 8080
+              published: 18100
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18101
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: arches-node-red
+    mosquitto:
+        container_name: arches-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.100.0.10
+            backend:
+                ipv4_address: 172.101.0.10
+
+    gost-db:
+        container_name: arches-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.100.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.101.0.0/16"

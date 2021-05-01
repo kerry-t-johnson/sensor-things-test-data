@@ -5,12 +5,14 @@ services:
         volumes:
             - nodered:/data
         networks:
+            - frontend
             - backend
     mosquitto:
         image: agmangas/mosquitto-websockets
         volumes:
             - mosquitto_data:/mosquitto/data
         networks:
+            - frontend
             - backend
     gost-db:
         image: geodan/gost-db
@@ -38,6 +40,7 @@ services:
     dashboard:
         image: geodan/gost-dashboard
         networks:
+            - frontend
             - backend
         depends_on:
             - gost
@@ -46,5 +49,4 @@ volumes:
     nodered:
     gost_conf:
     mosquitto_data:
-networks:
-    backend:
+

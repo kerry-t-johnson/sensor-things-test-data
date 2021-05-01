@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: glacier-gost
+        environment:
+            GOST_SERVER_NAME: Glacier
+            GOST_SERVER_EXTERNAL_URI: http://glacier:18150
+        networks:
+            frontend:
+                ipv4_address: 172.150.0.5
+    dashboard:
+        container_name: glacier
+        ports:
+            - target: 8080
+              published: 18150
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18151
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: glacier-node-red
+    mosquitto:
+        container_name: glacier-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.150.0.10
+            backend:
+                ipv4_address: 172.151.0.10
+
+    gost-db:
+        container_name: glacier-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.150.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.151.0.0/16"

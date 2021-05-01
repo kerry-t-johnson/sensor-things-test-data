@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: death-valley-gost
+        environment:
+            GOST_SERVER_NAME: Death Valley
+            GOST_SERVER_EXTERNAL_URI: http://death-valley:18110
+        networks:
+            frontend:
+                ipv4_address: 172.110.0.5
+    dashboard:
+        container_name: death-valley
+        ports:
+            - target: 8080
+              published: 18110
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18111
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: death-valley-node-red
+    mosquitto:
+        container_name: death-valley-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.110.0.10
+            backend:
+                ipv4_address: 172.111.0.10
+
+    gost-db:
+        container_name: death-valley-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.110.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.111.0.0/16"

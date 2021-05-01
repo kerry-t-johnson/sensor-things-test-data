@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: haleakala-gost
+        environment:
+            GOST_SERVER_NAME: Haleakala
+            GOST_SERVER_EXTERNAL_URI: http://haleakala:18160
+        networks:
+            frontend:
+                ipv4_address: 172.160.0.5
+    dashboard:
+        container_name: haleakala
+        ports:
+            - target: 8080
+              published: 18160
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18161
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: haleakala-node-red
+    mosquitto:
+        container_name: haleakala-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.160.0.10
+            backend:
+                ipv4_address: 172.161.0.10
+
+    gost-db:
+        container_name: haleakala-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.160.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.161.0.0/16"

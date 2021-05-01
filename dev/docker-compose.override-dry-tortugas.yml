@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: dry-tortugas-gost
+        environment:
+            GOST_SERVER_NAME: Dry Tortugas
+            GOST_SERVER_EXTERNAL_URI: http://dry-tortugas:18130
+        networks:
+            frontend:
+                ipv4_address: 172.130.0.5
+    dashboard:
+        container_name: dry-tortugas
+        ports:
+            - target: 8080
+              published: 18130
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18131
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: dry-tortugas-node-red
+    mosquitto:
+        container_name: dry-tortugas-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.130.0.10
+            backend:
+                ipv4_address: 172.131.0.10
+
+    gost-db:
+        container_name: dry-tortugas-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.130.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.131.0.0/16"

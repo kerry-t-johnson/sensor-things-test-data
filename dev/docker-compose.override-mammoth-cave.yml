@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: mammoth-cave-gost
+        environment:
+            GOST_SERVER_NAME: Mammoth Cave
+            GOST_SERVER_EXTERNAL_URI: http://mammoth-cave:18170
+        networks:
+            frontend:
+                ipv4_address: 172.170.0.5
+    dashboard:
+        container_name: mammoth-cave
+        ports:
+            - target: 8080
+              published: 18170
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18171
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: mammoth-cave-node-red
+    mosquitto:
+        container_name: mammoth-cave-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.170.0.10
+            backend:
+                ipv4_address: 172.171.0.10
+
+    gost-db:
+        container_name: mammoth-cave-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.170.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.171.0.0/16"

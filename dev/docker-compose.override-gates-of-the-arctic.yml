@@ -1,0 +1,44 @@
+version: "3.2"
+services:
+    gost:
+        container_name: gates-of-the-arctic-gost
+        environment:
+            GOST_SERVER_NAME: Gates of the Arctic
+            GOST_SERVER_EXTERNAL_URI: http://gates-of-the-arctic:18140
+        networks:
+            frontend:
+                ipv4_address: 172.140.0.5
+    dashboard:
+        container_name: gates-of-the-arctic
+        ports:
+            - target: 8080
+              published: 18140
+              protocol: tcp
+              mode: host
+            - target: 1880
+              published: 18141
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: gates-of-the-arctic-node-red
+    mosquitto:
+        container_name: gates-of-the-arctic-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.140.0.10
+            backend:
+                ipv4_address: 172.141.0.10
+
+    gost-db:
+        container_name: gates-of-the-arctic-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.140.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.141.0.0/16"

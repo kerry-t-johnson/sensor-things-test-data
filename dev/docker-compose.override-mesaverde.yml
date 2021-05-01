@@ -1,13 +1,44 @@
 version: "3.2"
 services:
     gost:
+        container_name: mesaverde-gost
         environment:
-            GOST_SERVER_NAME: Mesa Verde International
-            GOST_SERVER_EXTERNAL_URI: http://localhost:18080
-            GOST_LOG_VERBOSE_FLAG: "TRUE"
+            GOST_SERVER_NAME: Mesa Verde
+            GOST_SERVER_EXTERNAL_URI: http://mesaverde:18180
+        networks:
+            frontend:
+                ipv4_address: 172.180.0.5
     dashboard:
+        container_name: mesaverde
         ports:
             - target: 8080
-              published: 18080
+              published: 18180
               protocol: tcp
               mode: host
+            - target: 1880
+              published: 18181
+              protocol: tcp
+              mode: host
+    node-red:
+        container_name: mesaverde-node-red
+    mosquitto:
+        container_name: mesaverde-mosquitto
+        networks:
+            frontend:
+                ipv4_address: 172.180.0.10
+            backend:
+                ipv4_address: 172.181.0.10
+
+    gost-db:
+        container_name: mesaverde-gost-db
+networks:
+    frontend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.180.0.0/16"
+    backend:
+        ipam:
+            driver: default
+            config:
+                - subnet: "172.181.0.0/16"

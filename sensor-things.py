@@ -1,10 +1,13 @@
 #! /usr/bin/python3
 
 import argparse
+import datetime
 import functools
 import logging
 import os
+import random
 import requests
+import threading
 import yaml
 
 _INSTANCE = None
@@ -16,6 +19,7 @@ _LOCATION_RESOURCE = 'Locations'
 _OBSERVED_PROPERTY_RESOURCE = 'ObservedProperties'
 _SENSOR_RESOURCE = 'Sensors'
 _THING_RESOURCE = 'Things'
+_OBSERVATION_RESOURCE = 'Observations'
 
 _YAML_KEY_TO_RESOURCE = {
     'datastreams': _DATASTREAM_RESOURCE,
@@ -23,17 +27,19 @@ _YAML_KEY_TO_RESOURCE = {
     'locations': _LOCATION_RESOURCE,
     'sensors': _SENSOR_RESOURCE,
     'observedProperties': _OBSERVED_PROPERTY_RESOURCE,
-    'things': _THING_RESOURCE
+    'things': _THING_RESOURCE,
+    'observations': _OBSERVATION_RESOURCE,
 }
 
 
 _REFERENCE_KEY_TO_RESOURCE = {
     'Datastream': _DATASTREAM_RESOURCE,
-    'Feature': _FEATURE_RESOURCE,
+    'FeatureOfInterest': _FEATURE_RESOURCE,
     'Location': _LOCATION_RESOURCE,
     'Sensor': _SENSOR_RESOURCE,
     'ObservedProperty': _OBSERVED_PROPERTY_RESOURCE,
-    'Thing': _THING_RESOURCE
+    'Thing': _THING_RESOURCE,
+    'Observation': _OBSERVATION_RESOURCE,
 }
 
 
@@ -73,7 +79,9 @@ class SensorThingsAPI(object):
                          'Datastreams': {},
                          'Locations': {},
                          'Sensors': {},
-                         'ObservedProperties': {}
+                         'Features': {},
+                         'ObservedProperties': {},
+                         'Observations': {},
                          }
         self.logger.info('Connected to {url}.  {count} endpoints available.'.format(url=url,
                                                                                     count=(len(self.urls))))
@@ -84,6 +92,14 @@ class SensorThingsAPI(object):
         url = self.urls[resource]
         response = requests.get(url, {'$top': count, '$skip': offset})
         return response.json()['value']
+
+    @staticmethod
+    def _dynamic_CURRENT_TIME():
+        return datetime.datetime.now(datetime.timezone.utc).isoformat()
+    
+    @staticmethod
+    def _dynamic_RANDOM_BOOLEAN():
+        return random.choice([True, False])
 
     def search(self, resource, nameOrId):
         url = self.urls[resource]
@@ -102,7 +118,17 @@ class SensorThingsAPI(object):
             offset += count
 
     def create(self, resource, data, onlyIfNotExists=True):
-        if onlyIfNotExists:
+        original = dict(data)
+        dynamic = data.pop('sensor-things-dynamic', None)
+        repeat  = data.pop('sensor-things-repeat', None)
+
+        if dynamic:
+            for k, v in dynamic.items():
+                func = '_dynamic_{d}'.format(d = v)
+                func = getattr(SensorThingsAPI, func)
+                data[k] = func()
+
+        elif onlyIfNotExists:
             nameOrId = data.get('@iot.id', data['name'])
             try:
                 return self.search(resource, nameOrId)
@@ -118,6 +144,13 @@ class SensorThingsAPI(object):
             self.logger.info('Created new {type}: {id} ({name})'.format(type=resource.rstrip('s'),
                                                                         id=obj.get('@iot.id'),
                                                                         name=obj.get('name')))
+
+            if repeat:
+                quantity = repeat.get('quantity', 999)
+                if quantity > 0:
+                    original['sensor-things-repeat']['quantity'] = quantity - 1
+                    threading.Timer(repeat.get('interval', 10), self.create, args=[resource, original]).start()
+
             return obj
         except requests.exceptions.RequestException as ex:
             if hasattr(ex, 'response'):
@@ -176,7 +209,7 @@ class Thing(_SensorThingsBase):
 
 
 def _populate_references(item):
-    for attr in ['Sensor', 'ObservedProperty', 'Thing']:
+    for attr in ['Sensor', 'ObservedProperty', 'Thing', 'FeatureOfInterest', 'Datastream']:
         value = item.get(attr)
         if value and type(value) is str:
             value = _INSTANCE.search(_REFERENCE_KEY_TO_RESOURCE[attr],
